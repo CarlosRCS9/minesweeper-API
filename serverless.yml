@@ -1,3 +1,5 @@
+org: ccastillo
+app: minesweeper
 service: minesweeper-api
 frameworkVersion: '2'
 provider:
@@ -6,6 +8,17 @@ provider:
   stage: ${opt:stage, 'develop'}
   region: us-east-2
   lambdaHashingVersion: 20201221
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - 'dynamodb:Query'
+        - 'dynamodb:PutItem'
+        - 'dynamodb:UpdateItem'
+        - 'dynamodb:Scan'
+      Resource:
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/id
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/emailIndex
 functions:
   create-game-session-play:
     handler: src/functions/create-game-session-play.handler
@@ -45,6 +58,8 @@ functions:
           request:
             schema:
               application/json: ${file(src/schemas/user-password-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
   user-recover-password:
     handler: src/functions/user-recover-password.handler
     events:
@@ -55,6 +70,8 @@ functions:
           request:
             schema:
               application/json: ${file(src/schemas/user-recover-password-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
   user-login:
     handler: src/functions/user-login.handler
     events:
@@ -65,6 +82,9 @@ functions:
           request:
             schema:
               application/json: ${file(src/schemas/user-login-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
+      JWT_SECRET: ${param:jwtSecret}
   register-user:
     handler: src/functions/register-user.handler
     events:
@@ -75,10 +95,37 @@ functions:
           request:
             schema:
               application/json: ${file(src/schemas/register-user-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
 plugins:
   - serverless-pseudo-parameters
   - serverless-mocha
 custom:
+  dynamodb:
+    usersTable: ${self:service}-users-${self:provider.stage}
   serverless-mocha-plugin:
     testTemplate: templates/test-template.ejs
     functionTemplate: templates/function-template.ejs
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:custom.dynamodb.usersTable}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: emailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
