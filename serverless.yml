@@ -1,0 +1,72 @@
+service: minesweeper-api
+frameworkVersion: '2'
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'develop'}
+  region: us-east-2
+  lambdaHashingVersion: 20201221
+functions:
+  create-game-session-play:
+    handler: src/functions/create-game-session-play.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /games/minesweeper/sessions/{sessionid}
+  create-game-session:
+    handler: src/functions/create-game-session.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /games/minesweeper/sessions
+  list-game-session:
+    handler: src/functions/list-game-session.handler
+    events:
+      - http:
+          method: get
+          cors: true
+          path: /games/minesweeper/sessions/{sessionid}
+  list-game-sessions:
+    handler: src/functions/list-game-sessions.handler
+    events:
+      - http:
+          method: get
+          cors: true
+          path: /games/minesweeper/sessions
+  user-password:
+    handler: src/functions/user-password.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/password
+  user-recover-password:
+    handler: src/functions/user-recover-password.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/recover-password
+  user-login:
+    handler: src/functions/user-login.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/login
+  register-user:
+    handler: src/functions/register-user.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-mocha
+custom:
+  serverless-mocha-plugin:
+    testTemplate: templates/test-template.ejs
+    functionTemplate: templates/function-template.ejs
