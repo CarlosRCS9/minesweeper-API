@@ -19,6 +19,8 @@ provider:
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/id
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/emailIndex
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/id
 functions:
   create-game-session-play:
     handler: src/functions/create-game-session-play.handler
@@ -26,28 +28,30 @@ functions:
       - http:
           method: post
           cors: true
-          path: /games/minesweeper/sessions/{sessionid}
+          path: /games/{gameslug}/sessions/{sessionid}
   create-game-session:
     handler: src/functions/create-game-session.handler
     events:
       - http:
           method: post
           cors: true
-          path: /games/minesweeper/sessions
+          path: /games/{gameslug}/sessions
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   list-game-session:
     handler: src/functions/list-game-session.handler
     events:
       - http:
           method: get
           cors: true
-          path: /games/minesweeper/sessions/{sessionid}
+          path: /games/{gameslug}/sessions/{sessionid}
   list-game-sessions:
     handler: src/functions/list-game-sessions.handler
     events:
       - http:
           method: get
           cors: true
-          path: /games/minesweeper/sessions
+          path: /games/{gameslug}/sessions
   user-password:
     handler: src/functions/user-password.handler
     events:
@@ -103,6 +107,7 @@ plugins:
 custom:
   dynamodb:
     usersTable: ${self:service}-users-${self:provider.stage}
+    gamesTable: ${self:service}-games-${self:provider.stage}
   serverless-mocha-plugin:
     testTemplate: templates/test-template.ejs
     functionTemplate: templates/function-template.ejs
@@ -128,4 +133,16 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+    gamesTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:custom.dynamodb.gamesTable}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
         BillingMode: PAY_PER_REQUEST
