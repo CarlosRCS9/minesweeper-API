@@ -11,8 +11,8 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 module.exports.handler = async (event, context) => {
   try {
-    const gameslug = event.pathParameters.gameslug;
-    if (gameslug !== 'minesweeper') {
+    const gameSlug = event.pathParameters.gameslug;
+    if (gameSlug !== 'minesweeper') {
       return lambdaResponse(404, {message: 'game not found'});
     }
 
@@ -24,12 +24,12 @@ module.exports.handler = async (event, context) => {
     if (!validate(body)) {
       return lambdaResponse(400, {errors: validate.errors});
     }
-    if (gameslug === 'minesweeper') {
+    if (gameSlug === 'minesweeper') {
       body.mines = typeof body.mines === 'undefined' ?
       Math.floor(body.columns * body.rows * 0.05) :
       body.mines;
     }
-    if (gameslug === 'minesweeper' &&
+    if (gameSlug === 'minesweeper' &&
         (body.mines < 1 ||
          body.mines === (body.columns * body.rows))) {
       return lambdaResponse(400, {
@@ -42,12 +42,12 @@ module.exports.handler = async (event, context) => {
     const game = new MinesweeperGame({...body, id});
     const putGameParams = {
       TableName: process.env.DYNAMODB_GAMES_TABLE,
-      Item: {id, gameSlug: gameslug, gameData: game},
+      Item: {id, gameSlug: gameSlug, gameData: game},
     };
     await dynamodb.put(putGameParams).promise();
 
     return lambdaResponse(201, {data: {
-      message: `${gameslug} game created`,
+      message: `${gameSlug} game created`,
       game: game.publicData},
     });
   } catch (err) {

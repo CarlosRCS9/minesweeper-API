@@ -1,11 +1,23 @@
 'use strict';
 
+const AWS = require('aws-sdk');
+
+const MinesweeperGame = require('../libs/minesweeper-game');
+const lambdaResponse = require('../helpers/aws/lambda-response');
+
 module.exports.handler = async (event, context) => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Go Serverless v1.0! Your function executed successfully!',
-      input: event,
-    }),
-  };
+  try {
+    const gameSlug = event.pathParameters.gameslug;
+    if (gameSlug !== 'minesweeper') {
+      return lambdaResponse(404, {message: 'game not found'});
+    }
+
+    const sessionId = event.pathParameters.sessionid;
+    const game = await MinesweeperGame.fromDB(sessionId);
+
+    return lambdaResponse(200, {data: {game: game.publicData}});
+  } catch (err) {
+    console.log(err);
+    return new Error('There was an error during game session creation');
+  }
 };

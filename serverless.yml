@@ -29,6 +29,8 @@ functions:
           method: post
           cors: true
           path: /games/{gameslug}/sessions/{sessionid}
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   create-game-session:
     handler: src/functions/create-game-session.handler
     events:
@@ -45,6 +47,8 @@ functions:
           method: get
           cors: true
           path: /games/{gameslug}/sessions/{sessionid}
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   list-game-sessions:
     handler: src/functions/list-game-sessions.handler
     events:
@@ -52,6 +56,8 @@ functions:
           method: get
           cors: true
           path: /games/{gameslug}/sessions
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   user-password:
     handler: src/functions/user-password.handler
     events:
