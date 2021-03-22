@@ -1,0 +1,24 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "title": "register user request schema",
+    "required": [
+      "email",
+      "password"
+    ],
+    "properties": {
+      "email": {
+        "type": "string",
+        "title": "email",
+        "minLength": 3,
+        "maxLength": 320
+      },
+      "password": {
+        "title": "password",
+        "type": "string",
+        "minLength": 8,
+        "maxLength": 128
+      }
+    }
+}

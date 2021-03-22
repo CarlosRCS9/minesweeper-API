@@ -42,6 +42,9 @@ functions:
           method: post
           cors: true
           path: /users/password
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-password-request.json)}
   user-recover-password:
     handler: src/functions/user-recover-password.handler
     events:
@@ -49,6 +52,9 @@ functions:
           method: post
           cors: true
           path: /users/recover-password
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-recover-password-request.json)}
   user-login:
     handler: src/functions/user-login.handler
     events:
@@ -56,6 +62,9 @@ functions:
           method: post
           cors: true
           path: /users/login
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-login-request.json)}
   register-user:
     handler: src/functions/register-user.handler
     events:
@@ -63,6 +72,9 @@ functions:
           method: post
           cors: true
           path: /users
+          request:
+            schema:
+              application/json: ${file(src/schemas/register-user-request.json)}
 plugins:
   - serverless-pseudo-parameters
   - serverless-mocha
