@@ -21,3 +21,17 @@ The train of thought behind this is that the software client will never know the
 ![matrices](assets/matrices.png)
 
 The backend will receive a play from the user, review the stored _mines matrix_, update the _view matrix_ following the game rules, and return the new game state (_view matrix_) to the client.
+
+### Update
+
+An issue in my first design was that with every play sent, the backend must compute the number of adjacent mines in the cells revealed by the user. Still, those numbers are constant along the game, so they can be calculated one time only and stored.
+
+![matrices updated](assets/matrices-2.png)
+
+The _view matrix_ can be seen as a mask for the _mines matrix_. So at the beginning of the game, the 0's hide the numbers from the _mines matrix_.
+
+An additional fix for the view matrix is to replace the characters representing the flag and the question sign with numbers, so it can be easily applied as a mask by element-wise product.
+
+![matrices updated](assets/matrices-3.png)
+
+I decided to use prime numbers for the view matrix as it provides an easy way to pinpoint if the result of the product-wise product is a flag or a question sign (e.g., if the cell can be divided by 3, it is a flag).
