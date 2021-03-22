@@ -42,7 +42,7 @@ One of the client's requirements is the ability to support multiple users, so th
 
 ```
 POST /users                  <-- register a new user account.
-POST /users/login            <-- login with a user account (returns a JWT token).
+POST /users/login            <-- login with a user account (returns a JWT token to validate the user's identity).
 POST /users/recover-password <-- request a password reset.
 POST /users/password         <-- set the password from the requested reset.
 ```
