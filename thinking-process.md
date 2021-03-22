@@ -80,3 +80,7 @@ I will deploy the REST API's backend with _AWS Lambda_ (with _Amazon API Gateway
 For data persistence, I'm going to use _Amazon DynamoDB_ for two reasons; the first one is that it is a document-based non-SQL database. So if we develop another game in our API, we will not fight with database schemas. The second reason is cost, as it provides a 25 GB free tier.
 
 I'll be using the [serverless](https://www.serverless.com) framework for the development. It provides an easy way to define the _AWS_ resources architecture with a single YAML file.
+
+# Day 2
+
+Today I'll be working on the game logic implementation with serverless. Then, I'll be using the jwt token from the user login endpoint to secure the game sessions to only be played by the user who created them.
