@@ -2,12 +2,9 @@
 
 const Ajv = require('ajv').default;
 const {v4: uuidv4} = require('uuid');
-const AWS = require('aws-sdk');
 
 const MinesweeperGame = require('../libs/minesweeper-game');
 const lambdaResponse = require('../helpers/aws/lambda-response');
-
-const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 module.exports.handler = async (event, context) => {
   try {
@@ -40,11 +37,7 @@ module.exports.handler = async (event, context) => {
 
     const id = uuidv4();
     const game = new MinesweeperGame({...body, id});
-    const putGameParams = {
-      TableName: process.env.DYNAMODB_GAMES_TABLE,
-      Item: {id, gameSlug: gameSlug, gameData: game},
-    };
-    await dynamodb.put(putGameParams).promise();
+    await game.toDB();
 
     return lambdaResponse(201, {data: {
       message: `${gameSlug} game created`,
