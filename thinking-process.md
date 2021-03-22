@@ -35,3 +35,40 @@ An additional fix for the view matrix is to replace the characters representing 
 ![matrices updated](assets/matrices-3.png)
 
 I decided to use prime numbers for the view matrix as it provides an easy way to pinpoint if the result of the product-wise product is a flag or a question sign (e.g., if the cell can be divided by 3, it is a flag).
+
+## API design
+
+One of the client's requirements is the ability to support multiple users, so the API must be able to register user accounts. For this task, a minimum of 4 endpoints must be available:
+
+```
+POST /users                  <-- register a new user account.
+POST /users/login            <-- login with a user account (returns a JWT token).
+POST /users/recover-password <-- request a password reset.
+POST /users/password         <-- set the password from the requested reset.
+```
+
+To resume old games, it necessary to list them, so a read endpoint for all the user's games is required:
+
+```
+GET /games/minesweeper/sessions            <-- list all minesweeper game sessions.
+GET /games/minesweeper/sessions/:sessionId <-- read a minesweeper game session.
+
+```
+
+I'm going to "/minesweeper" in the path. If I develop another game in the future, I only have to change the path to "/:game" to make a generic endpoint.
+
+Then, an endpoint to create a new game is also required:
+
+```
+POST /games/minesweeper/sessions <-- create a minesweeper game session.
+
+```
+
+Finally, an endponit to play a specific minesweeper game is required:
+
+```
+POST /games/minesweeper/sessions/:sessionId <-- create a play in a minesweeper game session.
+
+```
+
+This endpoint was a tricky one, as one can argue that another HTTP verb should be used to "modify" the game resource (PUT, PATCH). Still, to be idempotent, a PUT request made several times with the same parameters must return the same result, which cannot be true for all games (thinking of a generic game API).
