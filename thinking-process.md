@@ -72,3 +72,11 @@ POST /games/minesweeper/sessions/:sessionId <-- create a play in a minesweeper g
 ```
 
 This endpoint was a tricky one, as one can argue that another HTTP verb should be used to "modify" the game resource (PUT, PATCH). Still, to be idempotent, a PUT request made several times with the same parameters must return the same result, which cannot be true for all games (thinking of a generic game API).
+
+## Deployment environment
+
+I will deploy the REST API's backend with _AWS Lambda_ (with \_Amazon API Gateway) as its free tier provides 1 Million free requests per month. And it will ensure that the API is easily scalable, so if our game is a hit, we'll be able to withstand high demand.
+
+For data persistence, I'm going to use \_Amazon DynamoDB\_ for two reasons; the first one is that it is a document-based non-SQL database. So if we develop another game in our API, we will not fight with database schemas. The second reason is cost, as it provides a 25 GB free tier.
+
+I'll be using the [serverless](https://www.serverless.com) framework for the development. It provides an easy way to define the _AWS_ resources architecture with a single YAML file.

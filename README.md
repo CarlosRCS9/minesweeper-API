@@ -2,7 +2,7 @@
 
 This project implements a REST API for a minesweeper game in Node.js.
 
-### Client requirements (from most to least important)
+# Client requirements (from most to least important)
 
 - Develop a REST API for the game.
 - Document the REST API of the game.
@@ -16,3 +16,7 @@ This project implements a REST API for a minesweeper game in Node.js.
 - The games should be able to be saved and resumed.
 - The player should be able to select game parameters (rows, columns, and mines).
 - The REST API must support multiple users.
+
+# Thinking process
+
+All decisions made for this project are described in this [file](thinking-process.md).
