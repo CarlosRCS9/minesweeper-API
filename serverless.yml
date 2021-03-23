@@ -21,7 +21,12 @@ provider:
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/emailIndex
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/id
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/creatorIdIndex
 functions:
+  validate-jwt-token:
+    handler: src/functions/validate-jwt-token.handler
+    environment:
+      JWT_SECRET: ${param:jwtSecret}
   create-game-session-play:
     handler: src/functions/create-game-session-play.handler
     events:
@@ -29,6 +34,7 @@ functions:
           method: post
           cors: true
           path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
     environment:
       DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   create-game-session:
@@ -38,6 +44,7 @@ functions:
           method: post
           cors: true
           path: /games/{gameslug}/sessions
+          authorizer: validate-jwt-token
     environment:
       DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   list-game-session:
@@ -47,6 +54,7 @@ functions:
           method: get
           cors: true
           path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
     environment:
       DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   list-game-sessions:
@@ -56,6 +64,7 @@ functions:
           method: get
           cors: true
           path: /games/{gameslug}/sessions
+          authorizer: validate-jwt-token
     environment:
       DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   user-password:

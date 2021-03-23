@@ -8,6 +8,7 @@ const lambdaResponse = require('../helpers/aws/lambda-response');
 
 module.exports.handler = async (event, context) => {
   try {
+    const userId = event.requestContext.authorizer.principalId;
     const gameSlug = event.pathParameters.gameslug;
     if (gameSlug !== 'minesweeper') {
       return lambdaResponse(404, {message: 'game not found'});
@@ -36,13 +37,13 @@ module.exports.handler = async (event, context) => {
     }
 
     const id = uuidv4();
-    const creatorId = uuidv4();
+    const creatorId = userId;
     const game = new MinesweeperGame({...body, id, creatorId});
-    await game.toDB();
+    await game.insert();
 
-    return lambdaResponse(201, {data: {
+    return lambdaResponse(201, {
       message: `${gameSlug} game created`,
-      game: game.publicData},
+      data: {game: game.publicData},
     });
   } catch (err) {
     console.log(err);

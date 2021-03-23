@@ -23,7 +23,7 @@ module.exports.handler = async (event, context) => {
       return lambdaResponse(401, {message: 'wrong credentials'});
     }
 
-    user = {email: user.email, id: user.id};
+    user = {id: user.id, email: user.email};
     const token = sign({user}, process.env.JWT_SECRET);
     return lambdaResponse(200, {message: 'ok', data: {token}});
   } catch (err) {

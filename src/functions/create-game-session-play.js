@@ -24,9 +24,12 @@ module.exports.handler = async (event, context) => {
     const sessionId = event.pathParameters.sessionid;
     const game = await MinesweeperGame.fromDB(sessionId);
     game.play(body);
-    await game.toDB();
+    await game.save();
 
-    return lambdaResponse(200, {data: {game: game.publicData, body}});
+    return lambdaResponse(200, {
+      message: 'ok',
+      data: {game: game.publicData, body}
+    });
   } catch (err) {
     console.log(err);
     return new Error('There was an error during game session creation');

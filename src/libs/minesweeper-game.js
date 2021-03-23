@@ -20,6 +20,7 @@ class MinesweeperGame {
      */
   constructor({
     id,
+    creatorId,
     columns,
     rows,
     mines,
@@ -31,6 +32,7 @@ class MinesweeperGame {
     createdDate = new Date(),
   }) {
     this.id = id;
+    this.creatorId = creatorId;
     this.columns = columns;
     this.rows = rows;
     this.mines = mines;
@@ -49,6 +51,7 @@ class MinesweeperGame {
   get publicData() {
     return {
       id: this.id,
+      creatorId: this.creatorId,
       columns: this.columns,
       rows: this.rows,
       mines: this.mines,
@@ -61,6 +64,21 @@ class MinesweeperGame {
       clientMatrixDraw: this.arrayToDraw(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
       // eslint-disable-next-line max-len
       viewMatrix: this.arrayToMatrix(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
+      createdDate: this.createdDate,
+    };
+  }
+  /**
+   * listData
+   */
+  get listData() {
+    return {
+      id: this.id,
+      columns: this.columns,
+      rows: this.rows,
+      mines: this.mines,
+      initialized: this.initialized,
+      ended: this.ended,
+      won: this.won,
       createdDate: this.createdDate,
     };
   }
@@ -132,7 +150,6 @@ class MinesweeperGame {
               scanResults.Items.length !== 1) {
             throw new Error('game not found');
           }
-          console.log(scanResults.Items[0]);
           scanResults.Items[0].gameData.minesMatrix =
             scanResults.Items[0].gameData.minesMatrix
                 .split(',')
@@ -147,12 +164,43 @@ class MinesweeperGame {
         });
   }
   /**
-   * toDB
+   * findByCreatorId
+   * @param {string} creatorId
+   * @param {object} dynamodb
+   * @return {object}
+   */
+  static findByCreatorId(
+      creatorId,
+      dynamodb = new AWS.DynamoDB.DocumentClient()
+  ) {
+    const queryUserParams = {
+      TableName: process.env.DYNAMODB_GAMES_TABLE,
+      IndexName: 'creatorIdIndex',
+      KeyConditionExpression: '#creatorId = :creatorId',
+      ExpressionAttributeNames: {'#creatorId': 'creatorId'},
+      ExpressionAttributeValues: {':creatorId': creatorId},
+    };
+    return dynamodb.query(queryUserParams).promise()
+        .then((scanResults) => scanResults.Items.map((item) => {
+          item.gameData.minesMatrix =
+            item.gameData.minesMatrix
+                .split(',')
+                .map((item) => Number(item));
+          item.gameData.viewMatrix =
+            item.gameData.viewMatrix
+                .split(',')
+                .map((item) => Number(item));
+          item.gameData.createdDate =
+            new Date(item.gameData.createdDate);
+          return new this(item.gameData);
+        }));
+  }
+  /**
+   * save
    * @param  {object} dynamodb
    * @return {object}
    */
-  toDB(dynamodb = new AWS.DynamoDB.DocumentClient()) {
-    console.log(this);
+  save(dynamodb = new AWS.DynamoDB.DocumentClient()) {
     const updateGameParams = {
       TableName: process.env.DYNAMODB_GAMES_TABLE,
       Key: {'id': this.id},
@@ -167,6 +215,27 @@ class MinesweeperGame {
       ReturnValues: 'UPDATED_NEW',
     };
     return dynamodb.update(updateGameParams).promise();
+  }
+  /**
+   * insert
+   * @param  {object} dynamodb
+   * @return {object}
+   */
+  insert(dynamodb = new AWS.DynamoDB.DocumentClient()) {
+    const putGameParams = {
+      TableName: process.env.DYNAMODB_GAMES_TABLE,
+      Item: {
+        id: this.id,
+        creatorId: this.creatorId,
+        gameData: {
+          ...this,
+          minesMatrix: this.minesMatrix.join(','),
+          viewMatrix: this.viewMatrix.join(','),
+          createdDate: this.createdDate.toISOString(),
+        },
+      },
+    };
+    return dynamodb.put(putGameParams).promise();
   }
   /**
    * initializeMinesMatrix
