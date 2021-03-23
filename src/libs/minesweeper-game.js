@@ -24,18 +24,24 @@ class MinesweeperGame {
     rows,
     mines,
     initialized = false,
+    ended = false,
+    won = false,
     minesMatrix = [],
     viewMatrix = [],
+    createdDate = new Date(),
   }) {
     this.id = id;
     this.columns = columns;
     this.rows = rows;
     this.mines = mines;
     this.initialized = initialized;
+    this.ended = ended;
+    this.won = won;
     this.minesMatrix = minesMatrix.length > 0 ?
       minesMatrix : this.zeroMatrix(this.columns, this.rows);
     this.viewMatrix = viewMatrix.length > 0 ?
       viewMatrix : this.zeroMatrix(this.columns, this.rows);
+    this.createdDate = createdDate;
   }
   /**
    * publicData
@@ -47,9 +53,15 @@ class MinesweeperGame {
       rows: this.rows,
       mines: this.mines,
       initialized: this.initialized,
+      ended: this.ended,
+      won: this.won,
       minesMatrixDraw: this.arrayToDraw(this.minesMatrix, this.columns),
       viewMatrixDraw: this.arrayToDraw(this.viewMatrix, this.columns),
-      viewMatrix: this.arrayToMatrix(this.viewMatrix, this.columns),
+      // eslint-disable-next-line max-len
+      clientMatrixDraw: this.arrayToDraw(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
+      // eslint-disable-next-line max-len
+      viewMatrix: this.arrayToMatrix(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
+      createdDate: this.createdDate,
     };
   }
   /**
@@ -94,6 +106,15 @@ class MinesweeperGame {
         }, []);
   }
   /**
+   * elemetWiseProduct
+   * @param {Array.<number>} array1
+   * @param {Array.<number>} array2
+   * @return {Array.<number>}
+   */
+  elemetWiseProduct(array1, array2) {
+    return array1.map((item1, index) => item1 * array2[index]);
+  }
+  /**
    * fromDB
    * @param {string} id
    * @param {object} dynamodb
@@ -114,12 +135,14 @@ class MinesweeperGame {
           console.log(scanResults.Items[0]);
           scanResults.Items[0].gameData.minesMatrix =
             scanResults.Items[0].gameData.minesMatrix
-                .split('')
+                .split(',')
                 .map((item) => Number(item));
           scanResults.Items[0].gameData.viewMatrix =
             scanResults.Items[0].gameData.viewMatrix
-                .split('')
+                .split(',')
                 .map((item) => Number(item));
+          scanResults.Items[0].gameData.createdDate =
+            new Date(scanResults.Items[0].gameData.createdDate);
           return new this(scanResults.Items[0].gameData);
         });
   }
@@ -129,6 +152,7 @@ class MinesweeperGame {
    * @return {object}
    */
   toDB(dynamodb = new AWS.DynamoDB.DocumentClient()) {
+    console.log(this);
     const updateGameParams = {
       TableName: process.env.DYNAMODB_GAMES_TABLE,
       Key: {'id': this.id},
@@ -136,8 +160,9 @@ class MinesweeperGame {
       UpdateExpression: 'set gameData = :gameData',
       ExpressionAttributeValues: {':gameData': {
         ...this,
-        minesMatrix: this.minesMatrix.join(''),
-        viewMatrix: this.viewMatrix.join(''),
+        minesMatrix: this.minesMatrix.join(','),
+        viewMatrix: this.viewMatrix.join(','),
+        createdDate: this.createdDate.toISOString(),
       }},
       ReturnValues: 'UPDATED_NEW',
     };
@@ -188,6 +213,41 @@ class MinesweeperGame {
     this.minesMatrix = newMinesMatrix;
   }
   /**
+   * rightClick
+   * @param {number} column
+   * @param {number} row
+   */
+  rightClick(column, row) {
+    const cellIndex = row * this.columns + column;
+    if (this.viewMatrix[cellIndex] !== 2) {
+      const nextCellValue = this.viewMatrix[cellIndex] === 0 ? 3 :
+        (this.viewMatrix[cellIndex] === 3 ? 5 : 0);
+      this.viewMatrix[cellIndex] = nextCellValue;
+    }
+  }
+  /**
+   * leftClick
+   * @param {number} column
+   * @param {number} row
+   */
+  leftClick(column, row) {
+    const cellIndex = row * this.columns + column;
+    if (this.viewMatrix[cellIndex] !== 2) {
+      this.viewMatrix[cellIndex] = 2;
+    }
+  }
+  /**
+   * validateStatus
+   */
+  validateStatus() {
+    const lost = this.elemetWiseProduct(this.minesMatrix, this.viewMatrix)
+        .reduce((acc, item) => acc || (item < 0 && item % 2 === 0), false);
+    if (lost) {
+      this.won = false;
+      this.ended = true;
+    }
+  }
+  /**
    * play
    * @param {string} click
    * @param {object} cell
@@ -201,11 +261,17 @@ class MinesweeperGame {
     if (0 > row || row >= this.rows) {
       throw new Error(`row must be between 0 and ${this.rows}`);
     }
-    // if (!this.initialized && click === 'left') {
-    if (click === 'left') {
+    if (!this.initialized && click === 'left') {
       this.initializeMinesMatrix(column, row);
       this.initialized = true;
     }
+    if (click === 'right') {
+      this.rightClick(column, row);
+    }
+    if (click === 'left') {
+      this.leftClick(column, row);
+    }
+    this.validateStatus();
   }
 }
 
