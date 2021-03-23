@@ -36,7 +36,8 @@ module.exports.handler = async (event, context) => {
     }
 
     const id = uuidv4();
-    const game = new MinesweeperGame({...body, id});
+    const creatorId = uuidv4();
+    const game = new MinesweeperGame({...body, id, creatorId});
     await game.toDB();
 
     return lambdaResponse(201, {data: {

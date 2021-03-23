@@ -84,3 +84,5 @@ I'll be using the [serverless](https://www.serverless.com) framework for the dev
 # Day 2
 
 Today I'll be working on the game logic implementation with serverless. Then, I'll be using the jwt token from the user login endpoint to secure the game sessions to only be played by the user who created them.
+
+At this point the backend is almost ready, so i'll start with the development of the frontend.
