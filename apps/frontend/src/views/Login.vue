@@ -20,6 +20,7 @@
                 outlined
               ></v-text-field>
               <v-btn
+                elevation="0"
                 type="submit"
                 :disabled=loginBtnDisabled
               >
@@ -74,7 +75,7 @@ export default {
         .then(({ data }) => {
           try {
             localStorage.token = data.data.token
-            this.$router.push({ name: 'GameSessions' })
+            this.$router.push({ name: 'GameSessions', params: { gameslug: 'minesweeper' } })
           } catch (err) {
             console.log(err)
             throw err
