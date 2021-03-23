@@ -9,18 +9,18 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/login',
-    name: 'About',
+    name: 'Login',
     component: Login
   },
   {
     path: '/games/:gameslug/sessions',
-    name: 'About',
+    name: 'GameSessions',
     component: GameSessions,
     props: true
   },
   {
     path: '/games/:gameslug/sessions/:sessionid',
-    name: 'About',
+    name: 'GameSession',
     component: GameSession,
     props: true
   }
