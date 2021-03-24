@@ -96,7 +96,7 @@
                           fa-flag
                         </v-icon>
                       </template>
-                      <span>{{getFlagText(item.initialized, item.ended, item.won)}}</span>
+                      <span>{{getFlagText(item.initialized, item.ended, item.won, new Date(item.endedDate), new Date(item.createdDate))}}</span>
                     </v-tooltip>
                   </v-list-item-action>
 
@@ -200,11 +200,21 @@ export default {
     getFlagColor (initialized, ended, won) {
       return initialized ? (ended ? (won ? 'green' : 'red') : '') : ''
     },
-    getFlagText (initialized, ended, won) {
-      return initialized ? (ended ? (won ? 'Won' : 'Lost') : `Time: ${this.duration}`) : 'Pending'
+    getFlagText (initialized, ended, won, end, start) {
+      return initialized ? (ended ? (won ? 'Won' : `Lost: ${this.getDurationString(end, start)}`) : `Time: ${this.duration}`) : 'Pending'
     },
     setDate (date) {
       this.date = new Date(date)
+    },
+    getDurationString (end, start) {
+      let seconds = Math.floor((end - start) / 1000)
+      let minutes = Math.floor(seconds / 60)
+      seconds = seconds - minutes * 60
+      let hours = Math.floor(minutes / 60)
+      minutes = minutes - hours * 60
+      const days = Math.floor(hours / 24)
+      hours = hours - days * 24
+      return `${days}d ${hours}h ${minutes}m ${seconds}s`
     }
   }
 }
