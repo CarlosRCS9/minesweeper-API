@@ -61,9 +61,9 @@ class MinesweeperGame {
       minesMatrixDraw: this.arrayToDraw(this.minesMatrix, this.columns),
       viewMatrixDraw: this.arrayToDraw(this.viewMatrix, this.columns),
       // eslint-disable-next-line max-len
-      clientMatrixDraw: this.arrayToDraw(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
+      clientMatrixDraw: this.arrayToDraw(this.elemetWiseValidation(this.minesMatrix, this.viewMatrix), this.columns),
       // eslint-disable-next-line max-len
-      viewMatrix: this.arrayToMatrix(this.elemetWiseProduct(this.minesMatrix, this.viewMatrix), this.columns),
+      viewMatrix: this.arrayToMatrix(this.elemetWiseValidation(this.minesMatrix, this.viewMatrix), this.columns),
       createdDate: this.createdDate,
     };
   }
@@ -124,13 +124,29 @@ class MinesweeperGame {
         }, []);
   }
   /**
-   * elemetWiseProduct
-   * @param {Array.<number>} array1
-   * @param {Array.<number>} array2
+   * elemetWiseValidation
+   * @param {Array.<number>} minesMatrix
+   * @param {Array.<number>} viewMatrix
    * @return {Array.<number>}
    */
-  elemetWiseProduct(array1, array2) {
-    return array1.map((item1, index) => item1 * array2[index]);
+  elemetWiseValidation(minesMatrix, viewMatrix) {
+    return minesMatrix.map((mmij, index) => {
+      const vmij = viewMatrix[index];
+      if (mmij === 0) {
+        return vmij;
+      }
+      const ij = mmij * vmij;
+      if (ij === 0) {
+        return 0;
+      }
+      if (ij % 17 === 0) {
+        return 17;
+      }
+      if (ij % 13 === 0) {
+        return 13;
+      }
+      return ij / 11;
+    });
   }
   /**
    * fromDB
@@ -288,11 +304,45 @@ class MinesweeperGame {
    */
   rightClick(column, row) {
     const cellIndex = row * this.columns + column;
-    if (this.viewMatrix[cellIndex] !== 2) {
-      const nextCellValue = this.viewMatrix[cellIndex] === 0 ? 3 :
-        (this.viewMatrix[cellIndex] === 3 ? 5 : 0);
+    if (this.viewMatrix[cellIndex] !== 11) {
+      const nextCellValue = this.viewMatrix[cellIndex] === 0 ? 13 :
+        (this.viewMatrix[cellIndex] === 13 ? 17 : 0);
       this.viewMatrix[cellIndex] = nextCellValue;
     }
+  }
+  /**
+   * leftClickExtension
+   * @param  {number}         cellIndex
+   * @param  {Array.<number>} visited
+   * @return {Array.<number>}
+   */
+  leftClickExtension(cellIndex, visited = []) {
+    visited.push(cellIndex);
+    const j = Math.floor(cellIndex / this.columns);
+    const i = cellIndex - j * this.columns;
+    const iMin = i > 1 ? i - 1 : 0;
+    const iMax = i < (this.columns - 1) ? i + 1 : (this.columns - 1);
+    const jMin = j > 1 ? j - 1 : 0;
+    const jMax = j < (this.rows - 1) ? j + 1 : (this.rows - 1);
+    const iLim = Array(iMax - iMin + 1)
+        .fill(0).map((_, index) => iMin + index);
+    const jLim = Array(jMax - jMin + 1)
+        .fill(0).map((_, index) => jMin + index);
+    // eslint-disable-next-line max-len
+    const ij = iLim.reduce((acc, _i) => [...acc, ...jLim.reduce((acc2, _j) => [...acc2, _j * this.columns + _i], [])], []);
+    const {nextij, neighbors} = ij.reduce((acc, cellIndex) => {
+      if (visited.indexOf(cellIndex) === -1) {
+        if (this.minesMatrix[cellIndex] === 0) {
+          acc.nextij.push(cellIndex);
+        } else {
+          visited.push(cellIndex);
+          acc.neighbors.push(cellIndex);
+        }
+      }
+      return acc;
+    }, {nextij: [], neighbors: []});
+    // eslint-disable-next-line max-len
+    return ij.length === 0 ? [] : [cellIndex, ...neighbors, ...nextij.reduce((acc, cellIndex) => [...acc, ...this.leftClickExtension(cellIndex, visited)], [])];
   }
   /**
    * leftClick
@@ -301,18 +351,43 @@ class MinesweeperGame {
    */
   leftClick(column, row) {
     const cellIndex = row * this.columns + column;
-    if (this.viewMatrix[cellIndex] !== 2) {
-      this.viewMatrix[cellIndex] = 2;
+    if (this.viewMatrix[cellIndex] !== 11) {
+      this.viewMatrix[cellIndex] = 11;
+      if (this.minesMatrix[cellIndex] === 0) {
+        const extension = this.leftClickExtension(cellIndex);
+        extension.map((cellIndex) => {
+          this.viewMatrix[cellIndex] = 11;
+          return cellIndex;
+        });
+      }
     }
   }
   /**
-   * validateStatus
+   * validateLoss
    */
-  validateStatus() {
-    const lost = this.elemetWiseProduct(this.minesMatrix, this.viewMatrix)
-        .reduce((acc, item) => acc || (item < 0 && item % 2 === 0), false);
+  validateLoss() {
+    const lost = this.elemetWiseValidation(this.minesMatrix, this.viewMatrix)
+        .reduce((acc, item) => acc || (item < 0), false);
     if (lost) {
       this.won = false;
+      this.ended = true;
+      this.minesMatrix
+          .reduce((acc, value, index) =>
+          value === -1 ? [...acc, index] : acc, [])
+          .map((index) => {
+            this.viewMatrix[index] = 11;
+            return index;
+          });
+    }
+  }
+  /**
+   * validateWin
+   */
+  validateWin() {
+    const discoveredCount = this.viewMatrix
+        .reduce((acc, item) => acc + (item === 11 ? 1 : 0), 0);
+    if (discoveredCount === (this.columns * this.rows - this.mines)) {
+      this.won = true;
       this.ended = true;
     }
   }
@@ -322,25 +397,27 @@ class MinesweeperGame {
    * @param {object} cell
    */
   play({click, cell}) {
-    console.log({click, cell});
-    const {column, row} = cell;
-    if (0 > column || column >= this.columns) {
-      throw new Error(`column must be between 0 and ${this.columns}`);
+    if (!this.ended) {
+      const {column, row} = cell;
+      if (0 > column || column >= this.columns) {
+        throw new Error(`column must be between 0 and ${this.columns}`);
+      }
+      if (0 > row || row >= this.rows) {
+        throw new Error(`row must be between 0 and ${this.rows}`);
+      }
+      if (!this.initialized && click === 'left') {
+        this.initializeMinesMatrix(column, row);
+        this.initialized = true;
+      }
+      if (click === 'right') {
+        this.rightClick(column, row);
+      }
+      if (click === 'left') {
+        this.leftClick(column, row);
+      }
+      this.validateLoss();
+      this.validateWin();
     }
-    if (0 > row || row >= this.rows) {
-      throw new Error(`row must be between 0 and ${this.rows}`);
-    }
-    if (!this.initialized && click === 'left') {
-      this.initializeMinesMatrix(column, row);
-      this.initialized = true;
-    }
-    if (click === 'right') {
-      this.rightClick(column, row);
-    }
-    if (click === 'left') {
-      this.leftClick(column, row);
-    }
-    this.validateStatus();
   }
 }
 

@@ -4,16 +4,49 @@
       <v-col class="text-center" cols="10">
         <v-row>
           <v-col>
-            <v-btn
-              elevation="0"
-              @click="createGameSession"
-            >
-              New game
-            </v-btn>
+            <v-form v-model="valid" @submit.prevent="createGameSession()">
+              <v-row>
+                <v-col>
+                  <v-text-field
+                    v-model="columns"
+                    label="Columns"
+                    :rules="[rules.number, rules.limit]"
+                    outlined
+                  ></v-text-field>
+                </v-col>
+                <v-col>
+                  <v-text-field
+                    v-model="rows"
+                    :rules="[rules.number, rules.limit]"
+                    label="Rows"
+                    outlined
+                  ></v-text-field>
+                </v-col>
+                <v-col>
+                  <v-text-field
+                    v-model="mines"
+                    :rules="[rules.number, rules.mines]"
+                    label="Mines"
+                    outlined
+                  ></v-text-field>
+                </v-col>
+                <v-col>
+                  <v-btn
+                    elevation="0"
+                    x-large
+                    type="submit"
+                    :disabled=newGameBtnDisabled
+                  >
+                    New game
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-form>
           </v-col>
           <v-col>
             <v-btn
               elevation="0"
+              x-large
               @click="logout"
             >
               Logout
@@ -63,10 +96,31 @@ export default {
     gameslug: { type: String }
   },
   data () {
-    return { sessions: [] }
+    return {
+      valid: false,
+      columns: 10,
+      rows: 10,
+      mines: 20,
+      sessions: [],
+      rules: {
+        number: value => !isNaN(Number(value)),
+        limit: value => Number(value) <= 30 || 'Must be equal or less than 30',
+        mines: value => value < (this.columns * this.rows - 1) || `Mines must be less than ${this.columns * this.rows - 1}`
+      }
+    }
   },
   mounted () {
     this.readGameSessions()
+  },
+  computed: {
+    newGameBtnDisabled: function () {
+      return !this.rules.number(this.columns) ||
+      !this.rules.number(this.rows) ||
+      !this.rules.number(this.mines) ||
+      this.rules.limit(this.columns) !== true ||
+      this.rules.limit(this.rows) !== true ||
+      this.rules.mines(this.mines) !== true
+    }
   },
   methods: {
     logout () {
@@ -74,7 +128,7 @@ export default {
       this.$router.push({ name: 'Login' })
     },
     createGameSession () {
-      gameService.createGameSession(this.gameslug)
+      gameService.createGameSession(this.gameslug, Number(this.columns), Number(this.rows), Number(this.mines))
         .then(({ data }) => {
           const sessionId = data.data.game.id
           this.$router.push({ name: 'GameSession', params: { gameslug: 'minesweeper', sessionid: sessionId } })

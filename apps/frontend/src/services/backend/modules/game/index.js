@@ -12,10 +12,10 @@ const readGameSession = (gameSlug, sessionId) => axios.get(`/games/${gameSlug}/s
   }
 })
 
-const createGameSession = (gameSlug) => axios.post(`/games/${gameSlug}/sessions`, {
-  columns: 10,
-  rows: 10,
-  mines: 10
+const createGameSession = (gameSlug, columns, rows, mines) => axios.post(`/games/${gameSlug}/sessions`, {
+  columns,
+  rows,
+  mines
 }, {
   headers: {
     Authorization: 'Bearer ' + localStorage.token
