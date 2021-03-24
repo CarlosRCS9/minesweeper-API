@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 import GameSessions from '../views/GameSessions.vue'
 import GameSession from '../views/GameSession.vue'
 
@@ -8,9 +9,18 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: '/',
+    redirect: '/login'
+  },
+  {
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
   },
   {
     path: '/games/:gameslug/sessions',
@@ -33,7 +43,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const publicRoutes = ['Login']
+  const publicRoutes = ['Login', 'Register']
   const tokenInStorage = localStorage.getItem('token')
   const authRequiredRoute = !publicRoutes.includes(to.name)
   if (authRequiredRoute && !tokenInStorage) {

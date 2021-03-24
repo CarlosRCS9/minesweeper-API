@@ -4,7 +4,7 @@
       <v-col class="text-center" cols="6">
         <v-row>
           <v-col>
-            <v-form v-model="valid" @submit.prevent="login()">
+            <v-form v-model="valid" @submit.prevent="register()">
               <v-text-field
                 v-model="email"
                 label="Email"
@@ -14,9 +14,19 @@
               <v-text-field
                 v-model="password"
                 label="Password"
+                :rules="[rules.password]"
                 :append-icon="show1 ? 'fa-eye' : 'fa-eye-slash'"
                 :type="show1 ? 'text' : 'password'"
                 @click:append="show1 = !show1"
+                outlined
+              ></v-text-field>
+              <v-text-field
+                v-model="passwordRepeated"
+                label="Confirm password"
+                :rules="[rules.password, rules.passwordsEqual]"
+                :append-icon="show2 ? 'fa-eye' : 'fa-eye-slash'"
+                :type="show1 ? 'text' : 'password'"
+                @click:append="show2 = !show2"
                 outlined
               ></v-text-field>
               <v-row>
@@ -26,15 +36,15 @@
                     type="submit"
                     :disabled=loginBtnDisabled
                   >
-                    Login
+                    Register
                   </v-btn>
                 </v-col>
                 <v-col>
                   <v-btn
                     elevation="0"
-                    @click="register"
+                    @click="signin"
                   >
-                    Register
+                    Sign in
                   </v-btn>
                 </v-col>
               </v-row>
@@ -45,9 +55,9 @@
           <v-col>
             <v-alert
               type="error"
-              v-show="loginFailed"
+              v-show="registerFailed"
             >
-              Authentication failed.
+              Registration failed.
             </v-alert>
           </v-col>
         </v-row>
@@ -60,18 +70,26 @@
 import userService from '../services/backend/modules/user'
 
 export default {
-  name: 'Login',
+  name: 'Register',
   data () {
     return {
       show1: false,
+      show2: false,
       email: '',
       password: '',
+      passwordRepeated: '',
       valid: false,
-      loginFailed: false,
+      registerFailed: false,
       rules: {
         email: value => {
           const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
           return pattern.test(value) || 'Invalid e-mail.'
+        },
+        password: value => {
+          return value.length >= 8 || 'Password must be at least 8 characters'
+        },
+        passwordsEqual: value => {
+          return value === this.password || 'Password must be equal'
         }
       }
     }
@@ -82,26 +100,26 @@ export default {
     }
   },
   methods: {
-    login () {
-      userService.login(this.email, this.password)
+    register () {
+      userService.register(this.email, this.password)
         .then(({ data }) => {
           try {
-            localStorage.token = data.data.token
-            this.$router.push({ name: 'GameSessions', params: { gameslug: 'minesweeper' } })
+            console.log(data)
+            this.$router.push({ name: 'Login' })
           } catch (err) {
             console.log(err)
             throw err
           }
         })
         .catch(() => {
-          this.loginFailed = true
+          this.registerFailed = true
           setTimeout(() => {
-            this.loginFailed = false
+            this.registerFailed = false
           }, 2000)
         })
     },
-    register () {
-      this.$router.push({ name: 'Register' })
+    signin () {
+      this.$router.push({ name: 'Login' })
     }
   }
 }

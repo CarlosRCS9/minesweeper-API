@@ -6,8 +6,17 @@
           <v-col>
             <v-btn
               elevation="0"
+              @click="createGameSession"
             >
-              NEW GAME
+              New game
+            </v-btn>
+          </v-col>
+          <v-col>
+            <v-btn
+              elevation="0"
+              @click="logout"
+            >
+              Logout
             </v-btn>
           </v-col>
         </v-row>
@@ -21,6 +30,7 @@
                 <v-list-item
                   v-for="(item, i) in sessions"
                   :key="i"
+                  @click="readGameSession(item.id)"
                 >
                   <v-list-item-icon>
                     <v-icon>fa-bomb</v-icon>
@@ -59,9 +69,23 @@ export default {
     this.readGameSessions()
   },
   methods: {
+    logout () {
+      localStorage.token = ''
+      this.$router.push({ name: 'Login' })
+    },
+    createGameSession () {
+      gameService.createGameSession(this.gameslug)
+        .then(({ data }) => {
+          const sessionId = data.data.game.id
+          this.$router.push({ name: 'GameSession', params: { gameslug: 'minesweeper', sessionid: sessionId } })
+        })
+    },
     readGameSessions () {
       gameService.readGameSessions(this.gameslug)
         .then(({ data }) => { this.sessions = data.data.games })
+    },
+    readGameSession (sessionId) {
+      this.$router.push({ name: 'GameSession', params: { gameslug: 'minesweeper', sessionid: sessionId } })
     }
   }
 }
