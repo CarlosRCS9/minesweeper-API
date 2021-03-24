@@ -56,10 +56,7 @@
         <v-row>
           <v-col>
             <v-list>
-              <v-list-item-group
-                v-model="selectedItem"
-                color="primary"
-              >
+              <v-list-item-group>
                 <v-list-item
                   v-for="(item, i) in sessions"
                   :key="i"
@@ -94,6 +91,7 @@
                           v-bind="attrs"
                           v-on="on"
                           :color="getFlagColor(item.initialized, item.ended, item.won)"
+                          @mouseover="setDate(item.createdDate)"
                         >
                           fa-flag
                         </v-icon>
@@ -142,6 +140,20 @@ export default {
       rows: 10,
       mines: 20,
       sessions: [],
+      date: null,
+      duration: 0,
+      intervalJob: setInterval(() => {
+        if (this.date !== null) {
+          let seconds = Math.floor((new Date() - this.date) / 1000)
+          let minutes = Math.floor(seconds / 60)
+          seconds = seconds - minutes * 60
+          let hours = Math.floor(minutes / 60)
+          minutes = minutes - hours * 60
+          const days = Math.floor(hours / 24)
+          hours = hours - days * 24
+          this.duration = `${days}d ${hours}h ${minutes}m ${seconds}s`
+        }
+      }, 1000),
       rules: {
         number: value => !isNaN(Number(value)),
         limit: value => Number(value) <= 30 || 'Must be equal or less than 30',
@@ -189,7 +201,10 @@ export default {
       return initialized ? (ended ? (won ? 'green' : 'red') : '') : ''
     },
     getFlagText (initialized, ended, won) {
-      return initialized ? (ended ? (won ? 'Won' : 'Lost') : 'Pending') : 'Pending'
+      return initialized ? (ended ? (won ? 'Won' : 'Lost') : `Time: ${this.duration}`) : 'Pending'
+    },
+    setDate (date) {
+      this.date = new Date(date)
     }
   }
 }
