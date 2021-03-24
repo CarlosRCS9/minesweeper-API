@@ -15,6 +15,7 @@ provider:
         - 'dynamodb:PutItem'
         - 'dynamodb:UpdateItem'
         - 'dynamodb:Scan'
+        - 'dynamodb:DeleteItem'
       Resource:
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/id
@@ -23,6 +24,16 @@ provider:
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/id
         - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/creatorIdIndex
 functions:
+  delete-game-session:
+    handler: src/functions/delete-game-session.handler
+    events:
+      - http:
+          method: delete
+          cors: true
+          path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
   validate-jwt-token:
     handler: src/functions/validate-jwt-token.handler
     environment:

@@ -5,22 +5,19 @@ const lambdaResponse = require('../helpers/aws/lambda-response');
 
 module.exports.handler = async (event, context) => {
   try {
-    const userId = event.requestContext.authorizer.principalId;
     const gameSlug = event.pathParameters.gameslug;
     if (gameSlug !== 'minesweeper') {
       return lambdaResponse(404, {message: 'game not found'});
     }
 
-    const games = await MinesweeperGame.findByCreatorId(userId);
+    const userId = event.requestContext.authorizer.principalId;
+    const sessionId = event.pathParameters.sessionid;
+    const game = await MinesweeperGame.fromDB(sessionId, userId);
+    await game.delete();
 
-    return lambdaResponse(200, {
-      message: 'ok',
-      data: {games: games
-          .map((game) => game.listData)
-          .sort((a, b) => b.createdDate - a.createdDate)},
-    });
+    return lambdaResponse(200, {message: 'deleted'});
   } catch (err) {
     console.log(err);
-    return new Error('There was an error during game sessions listing');
+    return new Error('There was an error during game session creation');
   }
 };

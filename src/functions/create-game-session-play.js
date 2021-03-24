@@ -21,8 +21,9 @@ module.exports.handler = async (event, context) => {
       return lambdaResponse(400, {errors: validate.errors});
     }
 
+    const userId = event.requestContext.authorizer.principalId;
     const sessionId = event.pathParameters.sessionid;
-    const game = await MinesweeperGame.fromDB(sessionId);
+    const game = await MinesweeperGame.fromDB(sessionId, userId);
     game.play(body);
     await game.save();
 

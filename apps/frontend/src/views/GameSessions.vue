@@ -63,19 +63,59 @@
                 <v-list-item
                   v-for="(item, i) in sessions"
                   :key="i"
-                  @click="readGameSession(item.id)"
                 >
-                  <v-list-item-icon>
-                    <v-icon>fa-bomb</v-icon>
-                  </v-list-item-icon>
+                  <v-list-item-action
+                    @click="deleteGameSession(item.id)"
+                  >
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                          v-bind="attrs"
+                          v-on="on"
+                        >
+                          fa-bomb
+                        </v-icon>
+                      </template>
+                      <span>Delete</span>
+                    </v-tooltip>
+                  </v-list-item-action>
 
-                  <v-list-item-content>
+                  <v-list-item-content
+                    @click="readGameSession(item.id)"
+                  >
                     <v-list-item-title v-text="new Date(item.createdDate).toLocaleString()"></v-list-item-title>
                     <v-list-item-subtitle v-text="`columns: ${item.columns}, rows: ${item.rows}, mines: ${item.mines}`"></v-list-item-subtitle>
                   </v-list-item-content>
 
                   <v-list-item-action>
-                    <v-icon>fa-bomb</v-icon>
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                          v-bind="attrs"
+                          v-on="on"
+                          :color="getFlagColor(item.initialized, item.ended, item.won)"
+                        >
+                          fa-flag
+                        </v-icon>
+                      </template>
+                      <span>{{getFlagText(item.initialized, item.ended, item.won)}}</span>
+                    </v-tooltip>
+                  </v-list-item-action>
+
+                  <v-list-item-action
+                    @click="deleteGameSession(item.id)"
+                  >
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                          v-bind="attrs"
+                          v-on="on"
+                        >
+                          fa-bomb
+                        </v-icon>
+                      </template>
+                      <span>Delete</span>
+                    </v-tooltip>
                   </v-list-item-action>
                 </v-list-item>
               </v-list-item-group>
@@ -140,6 +180,16 @@ export default {
     },
     readGameSession (sessionId) {
       this.$router.push({ name: 'GameSession', params: { gameslug: 'minesweeper', sessionid: sessionId } })
+    },
+    deleteGameSession (sessionId) {
+      gameService.deleteGameSession(this.gameslug, sessionId)
+        .then(() => this.readGameSessions())
+    },
+    getFlagColor (initialized, ended, won) {
+      return initialized ? (ended ? (won ? 'green' : 'red') : '') : ''
+    },
+    getFlagText (initialized, ended, won) {
+      return initialized ? (ended ? (won ? 'Won' : 'Lost') : 'Pending') : 'Pending'
     }
   }
 }

@@ -28,9 +28,16 @@ const createGameSessionPlay = (gameSlug, sessionId, playData) => axios.post(`/ga
   }
 })
 
+const deleteGameSession = (gameSlug, sessionId) => axios.delete(`/games/${gameSlug}/sessions/${sessionId}`, {
+  headers: {
+    Authorization: 'Bearer ' + localStorage.token
+  }
+})
+
 export default {
   readGameSessions,
   readGameSession,
   createGameSession,
-  createGameSessionPlay
+  createGameSessionPlay,
+  deleteGameSession
 }

@@ -150,15 +150,16 @@ class MinesweeperGame {
   }
   /**
    * fromDB
-   * @param {string} id
-   * @param {object} dynamodb
+   * @param {string}  id
+   * @param {string}  creatorId
+   * @param {object}  dynamodb
    * @return {object}
    */
-  static fromDB(id, dynamodb = new AWS.DynamoDB.DocumentClient()) {
+  static fromDB(id, creatorId, dynamodb = new AWS.DynamoDB.DocumentClient()) {
     const scanGameParams = {
       TableName: process.env.DYNAMODB_GAMES_TABLE,
-      FilterExpression: 'id = :id',
-      ExpressionAttributeValues: {':id': id},
+      FilterExpression: 'id = :id and creatorId = :creatorId',
+      ExpressionAttributeValues: {':id': id, ':creatorId': creatorId},
     };
     return dynamodb.scan(scanGameParams).promise()
         .then((scanResults) => {
@@ -252,6 +253,18 @@ class MinesweeperGame {
       },
     };
     return dynamodb.put(putGameParams).promise();
+  }
+  /**
+   * delete
+   * @param  {object} dynamodb
+   * @return {object}
+   */
+  delete(dynamodb = new AWS.DynamoDB.DocumentClient()) {
+    const deleteGameParams = {
+      TableName: process.env.DYNAMODB_GAMES_TABLE,
+      Key: {'id': this.id},
+    };
+    return dynamodb.delete(deleteGameParams).promise();
   }
   /**
    * initializeMinesMatrix

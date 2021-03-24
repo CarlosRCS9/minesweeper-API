@@ -10,8 +10,9 @@ module.exports.handler = async (event, context) => {
       return lambdaResponse(404, {message: 'game not found'});
     }
 
+    const userId = event.requestContext.authorizer.principalId;
     const sessionId = event.pathParameters.sessionid;
-    const game = await MinesweeperGame.fromDB(sessionId);
+    const game = await MinesweeperGame.fromDB(sessionId, userId);
 
     return lambdaResponse(200, {message: 'ok', data: {game: game.publicData}});
   } catch (err) {
