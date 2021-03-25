@@ -28,3 +28,46 @@ API documentation: https://documenter.getpostman.com/view/13441081/TzCHCWZE
 API public URL: https://fvr10a1k21.execute-api.us-east-2.amazonaws.com/develop
 
 Frontend public URL: https://ccastillo.ddnsking.com/games
+
+# Installation
+
+## Pre-requisistes
+
+- Create an account in [serverless](https://app.serverless.com).
+- Install and configure [serverless](https://www.serverless.com).
+- Install [Node.js](https://nodejs.org) v12.
+
+## Backend deployment
+
+- Clone the repository
+- Login with the [serverless](https://www.serverless.com) account.
+  ```
+  sls login
+  ```
+- Deploy the service.
+  ```
+  sls deploy
+  ```
+- Store the service url.
+
+## Frontend deployment
+
+- Change directory to the frontend app.
+  ```
+  cd apps/frontend
+  ```
+- Copy the _.env.example_.
+  ```
+  cp .env.example .env
+  ```
+- Modify the _.env_ to include the stored service url.
+- Modify the _.env_ to match the public path of the web server.
+- Install node packages.
+  ```
+  npm i
+  ```
+- Generate the static files.
+  ```
+  npm run build
+  ```
+- Serve the static files with NGINX/Apache.
