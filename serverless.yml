@@ -1,0 +1,183 @@
+org: ccastillo
+app: minesweeper
+service: minesweeper-api
+frameworkVersion: '2'
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'develop'}
+  region: us-east-2
+  lambdaHashingVersion: 20201221
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - 'dynamodb:Query'
+        - 'dynamodb:PutItem'
+        - 'dynamodb:UpdateItem'
+        - 'dynamodb:Scan'
+        - 'dynamodb:DeleteItem'
+      Resource:
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/id
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.usersTable}/index/emailIndex
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/id
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.dynamodb.gamesTable}/index/creatorIdIndex
+functions:
+  delete-game-session:
+    handler: src/functions/delete-game-session.handler
+    events:
+      - http:
+          method: delete
+          cors: true
+          path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
+  validate-jwt-token:
+    handler: src/functions/validate-jwt-token.handler
+    environment:
+      JWT_SECRET: ${param:jwtSecret}
+  create-game-session-play:
+    handler: src/functions/create-game-session-play.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
+  create-game-session:
+    handler: src/functions/create-game-session.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /games/{gameslug}/sessions
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
+  list-game-session:
+    handler: src/functions/list-game-session.handler
+    events:
+      - http:
+          method: get
+          cors: true
+          path: /games/{gameslug}/sessions/{sessionid}
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
+  list-game-sessions:
+    handler: src/functions/list-game-sessions.handler
+    events:
+      - http:
+          method: get
+          cors: true
+          path: /games/{gameslug}/sessions
+          authorizer: validate-jwt-token
+    environment:
+      DYNAMODB_GAMES_TABLE: ${self:custom.dynamodb.gamesTable}
+  user-password:
+    handler: src/functions/user-password.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/recover-password-set
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-password-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
+  user-recover-password:
+    handler: src/functions/user-recover-password.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/recover-password-request
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-recover-password-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
+  user-login:
+    handler: src/functions/user-login.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users/login
+          request:
+            schema:
+              application/json: ${file(src/schemas/user-login-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
+      JWT_SECRET: ${param:jwtSecret}
+  register-user:
+    handler: src/functions/register-user.handler
+    events:
+      - http:
+          method: post
+          cors: true
+          path: /users
+          request:
+            schema:
+              application/json: ${file(src/schemas/register-user-request.json)}
+    environment:
+      DYNAMODB_USERS_TABLE: ${self:custom.dynamodb.usersTable}
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-mocha
+custom:
+  dynamodb:
+    usersTable: ${self:service}-users-${self:provider.stage}
+    gamesTable: ${self:service}-games-${self:provider.stage}
+  serverless-mocha-plugin:
+    testTemplate: templates/test-template.ejs
+    functionTemplate: templates/function-template.ejs
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:custom.dynamodb.usersTable}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: emailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+    gamesTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        TableName: ${self:custom.dynamodb.gamesTable}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: creatorId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: creatorIdIndex
+            KeySchema:
+              - AttributeName: creatorId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST

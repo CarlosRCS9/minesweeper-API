@@ -1,0 +1,23 @@
+{
+    "type": "object",
+    "required": ["click", "cell"],
+    "additionalProperties": false,
+    "properties": {
+        "click": {
+            "enum": ["left", "right"]
+        },
+        "cell": {
+            "type": "object",
+            "required": ["column", "row"],
+            "additionalProperties": false,
+            "properties": {
+                "column": {
+                    "type": "integer"
+                },
+                "row": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
