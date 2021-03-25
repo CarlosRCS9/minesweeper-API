@@ -85,4 +85,30 @@ I'll be using the [serverless](https://www.serverless.com) framework for the dev
 
 Today I'll be working on the game logic implementation with serverless. Then, I'll be using the jwt token from the user login endpoint to secure the game sessions to only be played by the user who created them.
 
-At this point the backend is almost ready, so i'll start with the development of the frontend.
+At this point, the backend is almost ready, so I'll start with the frontend development. I will be developing the frontend application with Vue.js, specifically the Vuetify framework, as I don't have much experience with frontend development. Most of my close friends know Vue.js, so I can solve my doubts with them.
+
+# Day 3
+
+This day I mostly worked on frontend development. First, I added a JWT verification lambda to be used as an authenticator for all non-public endpoints; the serverless framework makes this task easy.
+I had to make sure that a user cannot access other user's resources, so I added an additional value to the game schema in the database _creatorId_.
+
+Then, I added a _beforeEach_ validation on the frontend router to assure that a JWT is always available in the non-public views.
+
+# Day 4
+
+On this day, I made most of the frontend views and added an additional DELETE endpoint to the API, so the user can delete old games:
+
+```
+DELETE /games/minesweeper/sessions/:sessionId <-- delete a specific miesweeper game.
+
+```
+
+To track the game time, I'm using two additional values in the game schema, _initializedDate_, and _endedDate_. With those, the frontend can compute how much time the game lasted.
+
+Finally, I decided to use my own NGINX server to serve the static frontend files as I already have it configured with an SSL certificate. In another case, I would have served those files from AWS S3 or an NGINX/Apache server hosted in AWS EC2.
+
+# Day 5
+
+Today I developed a client library for the API in Python; as I have experience with the language, it was pretty easy as it only was to wrap up the API calls into two Python classes. Also added more precise error messages to the API and the email format validation.
+
+I finished documenting the API in Postman (I really like Postman, as it is an all-in-one tool for API development).
