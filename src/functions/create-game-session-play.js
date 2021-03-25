@@ -33,6 +33,12 @@ module.exports.handler = async (event, context) => {
     });
   } catch (err) {
     console.log(err);
+    if (('' + err).includes('not found')) {
+      return lambdaResponse(404, {message: 'session not found'});
+    }
+    if (('' + err).includes('must be between')) {
+      return lambdaResponse(400, {message: '' + err});
+    }
     return new Error('There was an error during game session creation');
   }
 };

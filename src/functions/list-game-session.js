@@ -17,6 +17,9 @@ module.exports.handler = async (event, context) => {
     return lambdaResponse(200, {message: 'ok', data: {game: game.publicData}});
   } catch (err) {
     console.log(err);
+    if (('' + err).includes('not found')) {
+      return lambdaResponse(404, {message: 'session not found'});
+    }
     return new Error('There was an error during game session creation');
   }
 };

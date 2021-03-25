@@ -20,3 +20,7 @@ This project implements a REST API for a minesweeper game in Node.js.
 # Thinking process
 
 All decisions made for this project are described in this [file](thinking-process.md).
+
+# Resources
+
+API documentation: https://documenter.getpostman.com/view/13441081/TzCHCWZE
