@@ -443,6 +443,7 @@ class MinesweeperGame {
       if (!this.initialized && click === 'left') {
         this.initializeMinesMatrix(column, row);
         this.initialized = true;
+        this.initializedDate = new Date();
       }
       if (click === 'right') {
         this.rightClick(column, row);
