@@ -84,7 +84,7 @@ functions:
       - http:
           method: post
           cors: true
-          path: /users/password
+          path: /users/recover-password-set
           request:
             schema:
               application/json: ${file(src/schemas/user-password-request.json)}
@@ -96,7 +96,7 @@ functions:
       - http:
           method: post
           cors: true
-          path: /users/recover-password
+          path: /users/recover-password-request
           request:
             schema:
               application/json: ${file(src/schemas/user-recover-password-request.json)}

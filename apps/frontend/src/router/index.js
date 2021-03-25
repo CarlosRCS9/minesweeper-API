@@ -2,6 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import RecoverPasswordRequest from '../views/RecoverPasswordRequest.vue'
+import RecoverPasswordSet from '../views/RecoverPasswordSet.vue'
 import GameSessions from '../views/GameSessions.vue'
 import GameSession from '../views/GameSession.vue'
 
@@ -21,6 +23,16 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: Register
+  },
+  {
+    path: '/recover-password-request',
+    name: 'RecoverPasswordRequest',
+    component: RecoverPasswordRequest
+  },
+  {
+    path: '/recover-password-set',
+    name: 'RecoverPasswordSet',
+    component: RecoverPasswordSet
   },
   {
     path: '/games/:gameslug/sessions',
@@ -43,7 +55,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const publicRoutes = ['Login', 'Register']
+  const publicRoutes = ['Login', 'Register', 'RecoverPasswordRequest', 'RecoverPasswordSet']
   const tokenInStorage = localStorage.getItem('token')
   const authRequiredRoute = !publicRoutes.includes(to.name)
   if (authRequiredRoute && !tokenInStorage) {

@@ -31,10 +31,8 @@ module.exports.handler = async (event, context) => {
     };
     await dynamodb.update(updateUserParams).promise();
 
-    return lambdaResponse(200, {
-      message: 'email sent',
-      data: {verificationToken},
-    });
+    console.log({email, verificationToken});
+    return lambdaResponse(200, {message: 'email sent'});
   } catch (err) {
     console.log(err);
     return new Error('There was an error during user registration');

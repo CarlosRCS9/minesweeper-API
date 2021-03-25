@@ -35,12 +35,12 @@
                           v-bind="attrs"
                           v-on="on"
                           :color="getFlagColor(gameData.initialized, gameData.ended, gameData.won)"
-                          @mouseover="setDate(gameData.createdDate)"
+                          @mouseover="setDate(gameData.initializedDate)"
                         >
                           fa-flag
                         </v-icon>
                       </template>
-                      <span>{{getFlagText(gameData.initialized, gameData.ended, gameData.won, new Date(gameData.endedDate), new Date(gameData.createdDate))}}</span>
+                      <span>{{getFlagText(gameData.initialized, gameData.ended, gameData.won, new Date(gameData.endedDate), new Date(gameData.initializedDate))}}</span>
                     </v-tooltip>
                   </v-list-item-action>
 

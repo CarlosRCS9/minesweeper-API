@@ -30,6 +30,7 @@ class MinesweeperGame {
     minesMatrix = [],
     viewMatrix = [],
     createdDate = new Date(),
+    initializedDate = new Date(),
     endedDate = new Date(),
   }) {
     this.id = id;
@@ -45,6 +46,7 @@ class MinesweeperGame {
     this.viewMatrix = viewMatrix.length > 0 ?
       viewMatrix : this.zeroMatrix(this.columns, this.rows);
     this.createdDate = createdDate;
+    this.initializedDate = initializedDate;
     this.endedDate = endedDate;
   }
   /**
@@ -63,6 +65,7 @@ class MinesweeperGame {
       // eslint-disable-next-line max-len
       viewMatrix: this.arrayToMatrix(this.elemetWiseValidation(this.minesMatrix, this.viewMatrix), this.columns),
       createdDate: this.createdDate,
+      initializedDate: this.initializedDate,
       endedDate: this.endedDate,
     };
   }
@@ -79,6 +82,7 @@ class MinesweeperGame {
       ended: this.ended,
       won: this.won,
       createdDate: this.createdDate,
+      initializedDate: this.initializedDate,
       endedDate: this.endedDate,
     };
   }
@@ -177,6 +181,8 @@ class MinesweeperGame {
                 .map((item) => Number(item));
           scanResults.Items[0].gameData.createdDate =
             new Date(scanResults.Items[0].gameData.createdDate);
+          scanResults.Items[0].gameData.initializedDate =
+            new Date(scanResults.Items[0].gameData.initializedDate);
           scanResults.Items[0].gameData.endedDate =
             new Date(scanResults.Items[0].gameData.endedDate);
           return new this(scanResults.Items[0].gameData);
@@ -211,6 +217,8 @@ class MinesweeperGame {
                 .map((item) => Number(item));
           item.gameData.createdDate =
             new Date(item.gameData.createdDate);
+          item.gameData.initializedDate =
+            new Date(item.gameData.initializedDate);
           item.gameData.endedDate =
             new Date(item.gameData.endedDate);
           return new this(item.gameData);
@@ -232,6 +240,7 @@ class MinesweeperGame {
         minesMatrix: this.minesMatrix.join(','),
         viewMatrix: this.viewMatrix.join(','),
         createdDate: this.createdDate.toISOString(),
+        initializedDate: this.initializedDate.toISOString(),
         endedDate: this.endedDate.toISOString(),
       }},
       ReturnValues: 'UPDATED_NEW',
@@ -254,6 +263,7 @@ class MinesweeperGame {
           minesMatrix: this.minesMatrix.join(','),
           viewMatrix: this.viewMatrix.join(','),
           createdDate: this.createdDate.toISOString(),
+          initializedDate: this.initializedDate.toISOString(),
           endedDate: this.endedDate.toISOString(),
         },
       },
@@ -385,31 +395,35 @@ class MinesweeperGame {
    * validateLoss
    */
   validateLoss() {
-    const lost = this.elemetWiseValidation(this.minesMatrix, this.viewMatrix)
-        .reduce((acc, item) => acc || (item < 0), false);
-    if (lost) {
-      this.won = false;
-      this.ended = true;
-      this.endedDate = new Date();
-      this.minesMatrix
-          .reduce((acc, value, index) =>
-          value === -1 ? [...acc, index] : acc, [])
-          .map((index) => {
-            this.viewMatrix[index] = 11;
-            return index;
-          });
+    if (!this.ended) {
+      const lost = this.elemetWiseValidation(this.minesMatrix, this.viewMatrix)
+          .reduce((acc, item) => acc || (item < 0), false);
+      if (lost) {
+        this.won = false;
+        this.ended = true;
+        this.endedDate = new Date();
+        this.minesMatrix
+            .reduce((acc, value, index) =>
+            value === -1 ? [...acc, index] : acc, [])
+            .map((index) => {
+              this.viewMatrix[index] = 11;
+              return index;
+            });
+      }
     }
   }
   /**
    * validateWin
    */
   validateWin() {
-    const discoveredCount = this.viewMatrix
-        .reduce((acc, item) => acc + (item === 11 ? 1 : 0), 0);
-    if (discoveredCount === (this.columns * this.rows - this.mines)) {
-      this.won = true;
-      this.ended = true;
-      this.endedDate = new Date();
+    if (!this.ended) {
+      const discoveredCount = this.viewMatrix
+          .reduce((acc, item) => acc + (item === 11 ? 1 : 0), 0);
+      if (discoveredCount === (this.columns * this.rows - this.mines)) {
+        this.won = true;
+        this.ended = true;
+        this.endedDate = new Date();
+      }
     }
   }
   /**

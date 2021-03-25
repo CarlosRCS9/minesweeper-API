@@ -4,19 +4,11 @@
       <v-col class="text-center" cols="6">
         <v-row>
           <v-col>
-            <v-form v-model="valid" @submit.prevent="login()">
+            <v-form v-model="valid" @submit.prevent="recoverPasswordRequest()">
               <v-text-field
                 v-model="email"
                 label="Email"
                 :rules="[rules.email]"
-                outlined
-              ></v-text-field>
-              <v-text-field
-                v-model="password"
-                label="Password"
-                :append-icon="show1 ? 'fa-eye' : 'fa-eye-slash'"
-                :type="show1 ? 'text' : 'password'"
-                @click:append="show1 = !show1"
                 outlined
               ></v-text-field>
               <v-row>
@@ -24,15 +16,7 @@
                   <v-btn
                     elevation="0"
                     type="submit"
-                    :disabled=loginBtnDisabled
-                  >
-                    Login
-                  </v-btn>
-                </v-col>
-                <v-col>
-                  <v-btn
-                    elevation="0"
-                    @click="recoverPasswordRequest"
+                    :disabled=recoverBtnDisabled
                   >
                     Recover password
                   </v-btn>
@@ -40,9 +24,9 @@
                 <v-col>
                   <v-btn
                     elevation="0"
-                    @click="register"
+                    @click="signin"
                   >
-                    Register
+                    Sign in
                   </v-btn>
                 </v-col>
               </v-row>
@@ -53,9 +37,9 @@
           <v-col>
             <v-alert
               type="error"
-              v-show="loginFailed"
+              v-show="requestFailed"
             >
-              Authentication failed.
+              Password recovery failed.
             </v-alert>
           </v-col>
         </v-row>
@@ -68,14 +52,12 @@
 import userService from '../services/backend/modules/user'
 
 export default {
-  name: 'Login',
+  name: 'Register',
   data () {
     return {
-      show1: false,
       email: '',
-      password: '',
       valid: false,
-      loginFailed: false,
+      requestFailed: false,
       rules: {
         email: value => {
           const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -85,34 +67,25 @@ export default {
     }
   },
   computed: {
-    loginBtnDisabled: function () {
-      return !this.valid || this.email === '' || this.password === ''
+    recoverBtnDisabled: function () {
+      return !this.valid || this.email === ''
     }
   },
   methods: {
-    login () {
-      userService.login(this.email, this.password)
-        .then(({ data }) => {
-          try {
-            localStorage.token = data.data.token
-            this.$router.push({ name: 'GameSessions', params: { gameslug: 'minesweeper' } })
-          } catch (err) {
-            console.log(err)
-            throw err
-          }
+    recoverPasswordRequest () {
+      userService.recoverPasswordRequest(this.email)
+        .then(() => {
+          this.$router.push({ name: 'RecoverPasswordSet', query: { token: 'DEMO' } })
         })
         .catch(() => {
-          this.loginFailed = true
+          this.requestFailed = true
           setTimeout(() => {
-            this.loginFailed = false
+            this.requestFailed = false
           }, 2000)
         })
     },
-    register () {
-      this.$router.push({ name: 'Register' })
-    },
-    recoverPasswordRequest () {
-      this.$router.push({ name: 'RecoverPasswordRequest' })
+    signin () {
+      this.$router.push({ name: 'Login' })
     }
   }
 }
